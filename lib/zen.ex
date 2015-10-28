@@ -1,3 +1,7 @@
+defmodule ZenRepo do
+  defstruct git: nil, branch: nil
+end
+
 defmodule Zen do
   use Application
 
@@ -9,38 +13,52 @@ defmodule Zen do
     args |> parse_args |> do_process
   end
   def parse_args(args) do
-    options = OptionParser.parse(args)
+    options = OptionParser.parse(args,
+                                 switches: [help: :boolean, goal: :string, experiment: :string, back: :boolean, graph: :string],
+                                 aliases: [h: :help, g: :goal, e: :experiment, b: :back, g: :graph])
     case options do
-      {[goal: goal], _, _} -> [goal]
       {[help: true], _, _} -> :help
+      {[back: true], _, _} -> :back
+      {[options], _, _} -> [options]
       _ -> :help
     end
   end
 
-  def meditateOn(goal) do
-    repo = %Git.Repository{path: "."}
-    {:ok, status} = Git.checkout repo, ["-b", "f-zen-#{strip_spaces(goal)}"]
-    status |> parse_status |> meditate_msg |> IO.puts
+  @spec meditate_on(String.t) :: String.t
+  def meditate_on(goal) do
+    case checkout(repo(".","f-zen"), goal) do
+      {:ok, repo} -> "You're now meditating on #{repo.branch}"
+      {:error, _} -> "Failed. Clear your mind and repository."
+    end
+  end
+
+  def repo(path \\ ".", branch \\ "f-zen") do
+    git = %Git.Repository{path: path}
+    %ZenRepo{git: git, branch: branch}
+  end
+
+  @spec checkout(ZenRepo, String.t) :: ZenRep
+  def checkout(repo, goal) do
+    new_branch = "#{repo.branch}-#{strip_spaces(goal)}"
+    case Git.checkout repo.git, ["-b", new_branch] do
+      {:ok, _} -> {:ok, %{repo | branch: new_branch}}
+      {:error, _} -> {:error, repo}
+    end
   end
 
   def strip_spaces(string) do
     string |> String.replace(" ","-")
   end
 
-  def parse_status(status_string) do
-    status_string |> run_regex |> hd
+  defp do_process([options]) do
+    case options do
+      {:goal, a_goal} -> meditate_on(a_goal)
+      {:experiment, an_experiment} -> meditate_on(an_experiment)
+    end |> IO.puts
   end
 
-  def meditate_msg(branch) do
-    "You're now meditating on #{branch}"
-  end
-
-  defp run_regex(str) do
-    Regex.run(~r/f-zen-.+/,str)
-  end
-
-  defp do_process([change]) do
-    meditateOn(change)
+  defp do_process(:back) do
+    IO.puts "Going back..."
   end
 
   defp do_process(:help) do
@@ -48,3 +66,4 @@ defmodule Zen do
   end
 
 end
+

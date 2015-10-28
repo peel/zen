@@ -2,8 +2,15 @@ defmodule ZenTest do
   use ExUnit.Case
   doctest Zen
 
-  test "meditation start prints welcome message" do
-    str = "Switched to a new branch 'f-zen-aaa'" |> Zen.parse_status |> Zen.meditate_msg
-    assert "You're now meditating on f-zen-aaa" == str
+  setup do
+    branch_name = "some-goal"
+    repo = %Git.Repository{path: "."}
+    Git.checkout(repo, "master")
+    Git.branch(repo,["-d", "f-zen-#{branch_name}"])
+    :ok
+  end
+
+  test "meditate_on creates a branch" do
+    assert Zen.meditate_on("some-goal") == "You're now meditating on f-zen-some-goal"
   end
 end
