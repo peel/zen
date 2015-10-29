@@ -2,7 +2,7 @@ defmodule ZenTest do
   use ExUnit.Case
   doctest Zen
 
-  @goal = "some-goal"
+  @goal "some-goal"
 
   setup do
     new_branch_name = @goal
@@ -19,8 +19,24 @@ defmodule ZenTest do
     end
   end
 
-  test "meditate_on creates a branch" do
-    assert Zen.meditate_on(@goal) == "You're now meditating on f-zen-some-goal"
+  test "--goal creates a new branch" do
+    assert Zen.parse_and_process(["--goal","some-goal"]) == "You're now meditating on f-zen-some-goal"
+  end
+
+  test "--experiment creates a new branch" do
+    assert Zen.parse_and_process(["--experiment","some-goal"]) == "You're now meditating on f-zen-some-goal"
+  end
+
+  test "--back returns to previous commit" do
+    assert Zen.parse_and_process(["--back"]) == "Going back..."
+  end
+
+  test "--help prints help" do
+    assert Zen.parse_and_process(["--help"]) == "This is help message"
+  end
+
+  test "any other command prints help" do
+    assert Zen.parse_and_process(["smndfasjkdhjasd"]) == "This is help message"
   end
 
 end

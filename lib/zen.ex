@@ -18,9 +18,12 @@ defmodule Zen do
   end
 
   def main(args) do
-    args |> parse_args |> do_process |> IO.puts
+    args |> parse_and_process |> IO.puts
   end
-  def parse_args(args) do
+  def parse_and_process(args) do
+    args |> parse_args |> do_process
+  end
+  defp parse_args(args) do
     options = OptionParser.parse(args,
                                  switches: [help: :boolean,
                                             goal: :string,
@@ -48,13 +51,13 @@ defmodule Zen do
     end
   end
 
-  def repo(path \\ ".", branch \\ "f-zen") do
+  defp repo(path \\ ".", branch \\ "f-zen") do
     git = %Git.Repository{path: path}
     %ZenRepo{git: git, branch: branch}
   end
 
   @spec checkout(ZenRepo, String.t) :: ZenRep
-  def checkout(repo, goal) do
+  defp checkout(repo, goal) do
     new_branch = "#{repo.branch}-#{strip_spaces(goal)}"
     case Git.checkout repo.git, ["-b", new_branch] do
       {:ok, _} -> {:ok, %{repo | branch: new_branch}}
@@ -62,7 +65,7 @@ defmodule Zen do
     end
   end
 
-  def strip_spaces(string) do
+  defp strip_spaces(string) do
     string |> String.replace(" ","-")
   end
 
@@ -74,11 +77,11 @@ defmodule Zen do
   end
 
   defp do_process(:back) do
-    IO.puts "Going back..."
+    "Going back..."
   end
 
   defp do_process(:help) do
-    IO.puts "This is help message"
+    "This is help message"
   end
 
 end
