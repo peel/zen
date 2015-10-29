@@ -20,6 +20,7 @@ defmodule Zen.Mixfile do
   end
 
   defp deps do
-    [{:git_cli, "~> 0.1.0"}]
+    [{:git_cli, "~> 0.1.0"},
+     {:dogma, "~> 0.0", only: :dev}]
   end
 end

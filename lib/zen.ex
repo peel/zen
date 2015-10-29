@@ -1,21 +1,37 @@
 defmodule ZenRepo do
+  @moduledoc """
+  Encapsulates data regarding git repository and its state.
+  """
+
   defstruct git: nil, branch: nil
 end
 
 defmodule Zen do
   use Application
 
+  @moduledoc """
+  Zen is a CLI wrapper for `Zen of Refactoring`'s Mikado Method automation.
+  """
+
   def start(_type, _args) do
     Zen.Supervisor.start_link
   end
 
   def main(args) do
-    args |> parse_args |> do_process
+    args |> parse_args |> do_process |> IO.puts
   end
   def parse_args(args) do
     options = OptionParser.parse(args,
-                                 switches: [help: :boolean, goal: :string, experiment: :string, back: :boolean, graph: :string],
-                                 aliases: [h: :help, g: :goal, e: :experiment, b: :back, g: :graph])
+                                 switches: [help: :boolean,
+                                            goal: :string,
+                                            experiment: :string,
+                                            back: :boolean,
+                                            graph: :string],
+                                 aliases: [h: :help,
+                                           g: :goal,
+                                           e: :experiment,
+                                           b: :back,
+                                           g: :graph])
     case options do
       {[help: true], _, _} -> :help
       {[back: true], _, _} -> :back
@@ -54,7 +70,7 @@ defmodule Zen do
     case options do
       {:goal, a_goal} -> meditate_on(a_goal)
       {:experiment, an_experiment} -> meditate_on(an_experiment)
-    end |> IO.puts
+    end
   end
 
   defp do_process(:back) do
@@ -66,4 +82,3 @@ defmodule Zen do
   end
 
 end
-

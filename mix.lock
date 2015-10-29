@@ -1,1 +1,3 @@
-%{"git_cli": {:hex, :git_cli, "0.1.0"}}
+%{"dogma": {:hex, :dogma, "0.0.11"},
+  "git_cli": {:hex, :git_cli, "0.1.0"},
+  "poison": {:hex, :poison, "1.5.0"}}
