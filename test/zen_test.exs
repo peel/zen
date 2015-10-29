@@ -3,11 +3,19 @@ defmodule ZenTest do
   doctest Zen
 
   setup do
-    branch_name = "some-goal"
+    new_branch_name = "some-goal"
     repo = %Git.Repository{path: "."}
-    Git.checkout(repo, "master")
-    Git.branch(repo,["-d", "f-zen-#{branch_name}"])
-    :ok
+    {:ok, branch_rev} = Git.rev_parse(repo,["--abbrev-ref","HEAD"])
+    branch_name = branch_rev |> String.strip
+    IO.puts "Starting work from #{branch_name}"
+
+    on_exit fn ->
+      IO.puts "checking out #{branch_name}"
+      Git.checkout repo, ["#{branch_name}"]
+      Git.checkout repo, ["master"]
+      IO.puts "removing f-zen-#{new_branch_name}"
+      Git.branch(repo,["-D", "f-zen-#{new_branch_name}"])
+    end
   end
 
   test "meditate_on creates a branch" do
