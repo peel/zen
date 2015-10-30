@@ -3,7 +3,7 @@ defmodule ZenRepo do
   Encapsulates data regarding git repository and its state.
   """
 
-  defstruct git: nil, branch: nil
+  defstruct git: nil, branches: %{source: nil, parent: nil, current: nil}
 end
 
 defmodule Zen do
@@ -20,9 +20,11 @@ defmodule Zen do
   def main(args) do
     args |> parse_and_process |> IO.puts
   end
+
   def parse_and_process(args) do
     args |> parse_args |> do_process
   end
+
   defp parse_args(args) do
     options = OptionParser.parse(args,
                                  switches: [help: :boolean,
@@ -45,22 +47,30 @@ defmodule Zen do
 
   @spec meditate_on(String.t) :: String.t
   def meditate_on(goal) do
-    case checkout(repo(".","f-zen"), goal) do
-      {:ok, repo} -> "You're now meditating on #{repo.branch}"
+    case checkout(repo, goal) do
+      {:ok, repo} -> "You're now meditating on #{repo.branches.current}"
       {:error, _} -> "Failed. Clear your mind and repository."
     end
   end
 
-  defp repo(path \\ ".", branch \\ "f-zen") do
-    git = %Git.Repository{path: path}
-    %ZenRepo{git: git, branch: branch}
+  def git(path \\ ".") do
+    %Git.Repository{path: path}
+  end
+
+  def repo(path \\ ".", branches \\ %{source: current_branch, previous: current_branch, current: "f-zen"}) do
+    %ZenRepo{git: git, branches: branches}
+  end
+
+  def current_branch(git \\ git) do
+    {:ok, branch_rev} = Git.rev_parse(git,["--abbrev-ref","HEAD"])
+    branch_rev |> String.strip
   end
 
   @spec checkout(ZenRepo, String.t) :: ZenRep
   defp checkout(repo, goal) do
-    new_branch = "#{repo.branch}-#{strip_spaces(goal)}"
+    new_branch = "#{repo.branches.current}-#{strip_spaces(goal)}"
     case Git.checkout repo.git, ["-b", new_branch] do
-      {:ok, _} -> {:ok, %{repo | branch: new_branch}}
+      {:ok, _} -> {:ok, %{repo | branches: %{repo.branches | previous: current_branch, current: new_branch}}}
       {:error, _} -> {:error, repo}
     end
   end
